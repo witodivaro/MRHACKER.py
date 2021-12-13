@@ -1,5 +1,6 @@
 from lib import aes_gcm
 from Crypto.Random import get_random_bytes
+from Crypto.Hash import SHA256
 from os import path
 
 
@@ -7,7 +8,7 @@ def extractName(filepath):
     return filepath.split(path.sep)[-1]
 
 
-def replaceFilename(filepath, filename):
+def replace_filename(filepath, filename):
     splittedFilepath = filepath.split(path.sep)
     splittedFilepath.pop()
     splittedFilepath.extend([filename])
@@ -17,33 +18,39 @@ def replaceFilename(filepath, filename):
 
 def encryptFile(key, salt, filepath):
     filename = extractName(filepath)
-    encryptedFilename = aes_gcm.encrypt(key, filename, salt)
+    random_filename = SHA256.new(get_random_bytes(32)).digest().hex()
 
-    encryptedFilepath = replaceFilename(filepath, encryptedFilename)
-    encryptedFile = open(encryptedFilepath, "w")
+    encrypted_file_path = replace_filename(filepath, random_filename)
+    encrypted_file = open(encrypted_file_path, "w")
 
-    with open(filepath, 'r') as decryptedFile:
-        for line in decryptedFile:
-            encryptedLine = aes_gcm.encrypt(key, line, salt)
-            encryptedFile.write(encryptedLine)
-        decryptedFile.close()
-        encryptedFile.close()
+    decrypted_file = open(filepath, 'r')
+    file_content = decrypted_file.read()
+    content_to_encrypt = "/".join([filename, file_content])
+
+    encrypted_content = aes_gcm.encrypt(key, content_to_encrypt, salt)
+    encrypted_file.write(encrypted_content)
+
+    decrypted_file.close()
+    encrypted_file.close()
 
 
 def decryptFile(key, salt, filepath):
-    filename = extractName(filepath)
+    decrypted_file = None
 
-    decryptedFilename = aes_gcm.decrypt(key, filename, salt)
-    decryptedFilepath = replaceFilename(filepath, decryptedFilename)
+    encrypted_file = open(filepath, 'r')
+    encrypted_content = encrypted_file.read()
 
-    decryptedFile = open(decryptedFilepath, 'w')
+    decrypted_content = aes_gcm.decrypt(key, encrypted_content, salt)
+    separator_index = decrypted_content.find('/')
+    filename = decrypted_content[:separator_index]
+    file_content = decrypted_content[separator_index + 1:]
 
-    with open(filepath, 'r') as encryptedFile:
-        for line in encryptedFile:
-            decryptedLine = aes_gcm.decrypt(key, line, salt)
-            decryptedFile.write(decryptedLine)
-        decryptedFile.close()
-        encryptedFile.close()
+    decrypted_filepath = replace_filename(filepath, filename)
+    decrypted_file = open(decrypted_filepath, 'w')
+    decrypted_file.write(file_content)
+
+    decrypted_file.close()
+    encrypted_file.close()
 
 
 def saveKeys(filepath, key, salt):

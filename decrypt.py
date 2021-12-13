@@ -12,8 +12,19 @@ keysFile = open(keyspath, 'r')
 key = bytes.fromhex(keysFile.readline().rstrip())
 salt = bytes.fromhex(keysFile.readline())
 
-for filename in listdir('files'):
-    filepath = path.join('files', filename)
-    files.decryptFile(key, salt, filepath)
-    remove(filepath)
+
+def decryptDir(dir):
+    for filename in listdir(dir):
+        filepath = path.join(dir, filename)
+
+        if (path.isdir(filepath)):
+            decryptDir(dir)
+            continue
+
+        files.decryptFile(key, salt, filepath)
+        remove(filepath)
+
     remove(keyspath)
+
+
+decryptDir('files')

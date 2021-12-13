@@ -9,10 +9,19 @@ keyspath = path.join(
 key = get_random_bytes(16)
 salt = get_random_bytes(16)
 
-for filename in listdir('files'):
-    filepath = path.join('files', filename)
-    files.encryptFile(key, salt, filepath)
-    remove(filepath)
 
+def encryptDir(dir):
+    for filename in listdir(dir):
+        filepath = path.join(dir, filename)
+
+        if (path.isdir(filepath)):
+            encryptDir(dir)
+            continue
+
+        files.encryptFile(key, salt, filepath)
+        remove(filepath)
+
+
+encryptDir('files')
 
 files.saveKeys(keyspath, key, salt)
