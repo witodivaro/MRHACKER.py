@@ -10,7 +10,7 @@ key = get_random_bytes(16)
 salt = get_random_bytes(16)
 
 
-def encryptDir(dir):
+def encrypt_dir(dir):
     for filename in listdir(dir):
         filepath = path.join(dir, filename)
 
@@ -19,13 +19,13 @@ def encryptDir(dir):
                 continue
 
             print(filename)
-            encryptDir(filepath)
+            encrypt_dir(filepath)
             continue
 
-        files.encryptFile(key, salt, filepath)
+        files.encrypt_file(key, salt, filepath)
         remove(filepath)
 
 
-encryptDir('file_tree')
+encrypt_dir('file_tree')
 
-files.saveKeys(keyspath, key, salt)
+files.save_keys(keyspath, key, salt)

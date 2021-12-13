@@ -6,18 +6,18 @@ from Crypto.Hash import SHA256
 from Crypto.Random import get_random_bytes
 
 
-def deriveKey(key, salt):
-    return KDF.PBKDF2(key, salt, dkLen=16, count=1_000_000)
+def derive_key(key, salt):
+    return KDF.PBKDF2(key, salt, dkLen=32, count=1_000_000)
 
 
-def convertToBytes(el):
+def convert_to_bytes(el):
     if (isinstance(el, bytes)):
         return el
 
     return str.encode(el)
 
 
-def parseEncryption(encryption):
+def parse_encryption(encryption):
     nonce, ciphertext, tag = [
         bytes.fromhex(x) for x in
         [encryption[:32], encryption[32:-32], encryption[-32:]]
@@ -27,9 +27,9 @@ def parseEncryption(encryption):
 
 
 def encrypt(key, message, salt):
-    bytesKey, bytesMessage = [convertToBytes(x) for x in [key, message]]
+    bytesKey, bytesMessage = [convert_to_bytes(x) for x in [key, message]]
 
-    derivedKey = deriveKey(bytesKey, salt)
+    derivedKey = derive_key(bytesKey, salt)
     aes = AES.new(derivedKey, AES.MODE_GCM)
     ciphertext, tag = aes.encrypt_and_digest(bytesMessage)
     encryption = "".join([x.hex() for x in [aes.nonce, ciphertext, tag]])
@@ -38,10 +38,10 @@ def encrypt(key, message, salt):
 
 
 def decrypt(key, encryption, salt):
-    nonce, ciphertext, tag = parseEncryption(encryption)
+    nonce, ciphertext, tag = parse_encryption(encryption)
 
-    bytesKey = convertToBytes(key)
-    derivedKey = deriveKey(bytesKey, salt)
+    bytesKey = convert_to_bytes(key)
+    derivedKey = derive_key(bytesKey, salt)
 
     aes = AES.new(derivedKey, AES.MODE_GCM, nonce=nonce)
     plaintext = aes.decrypt_and_verify(ciphertext, tag)

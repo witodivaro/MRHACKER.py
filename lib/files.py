@@ -14,7 +14,7 @@ def read_file(filepath):
             pass
 
 
-def extractName(filepath):
+def extract_name(filepath):
     return filepath.split(path.sep)[-1]
 
 
@@ -26,10 +26,9 @@ def replace_filename(filepath, filename):
     return path.sep.join(splittedFilepath)
 
 
-def encryptFile(key, salt, filepath):
-    filename = extractName(filepath)
-    random_filename = SHA256.new(
-        get_random_bytes(32)).digest().hex() + '.encrypted'
+def encrypt_file(key, salt, filepath):
+    filename = extract_name(filepath)
+    random_filename = SHA256.new(get_random_bytes(32)).digest().hex()
 
     encrypted_file_path = replace_filename(filepath, random_filename)
     encrypted_file = open(encrypted_file_path, "w")
@@ -43,7 +42,7 @@ def encryptFile(key, salt, filepath):
     encrypted_file.close()
 
 
-def decryptFile(key, salt, filepath):
+def decrypt_file(key, salt, filepath):
     decrypted_file = None
 
     encrypted_file = open(filepath, 'r')
@@ -66,7 +65,7 @@ def decryptFile(key, salt, filepath):
     encrypted_file.close()
 
 
-def saveKeys(filepath, key, salt):
+def save_keys(filepath, key, salt):
     keysFile = open(filepath, 'w')
     keysFile.write(key.hex())
     keysFile.write('\n')
