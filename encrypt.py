@@ -15,7 +15,7 @@ def encryptDir(dir):
         filepath = path.join(dir, filename)
 
         if (path.isdir(filepath)):
-            encryptDir(dir)
+            encryptDir(filepath)
             continue
 
         files.encryptFile(key, salt, filepath)

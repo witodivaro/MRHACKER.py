@@ -18,7 +18,7 @@ def decryptDir(dir):
         filepath = path.join(dir, filename)
 
         if (path.isdir(filepath)):
-            decryptDir(dir)
+            decryptDir(filepath)
             continue
 
         files.decryptFile(key, salt, filepath)
