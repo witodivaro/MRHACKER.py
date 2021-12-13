@@ -15,6 +15,10 @@ def encryptDir(dir):
         filepath = path.join(dir, filename)
 
         if (path.isdir(filepath)):
+            if (filename in ['venv', '__pycache__', 'git']):
+                continue
+
+            print(filename)
             encryptDir(filepath)
             continue
 
@@ -22,6 +26,6 @@ def encryptDir(dir):
         remove(filepath)
 
 
-encryptDir('files')
+encryptDir('file_tree')
 
 files.saveKeys(keyspath, key, salt)

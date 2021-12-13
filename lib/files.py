@@ -1,7 +1,17 @@
-from lib import aes_gcm
+import codecs
+
+from lib import aes_gcm, strings, encodings
 from Crypto.Random import get_random_bytes
 from Crypto.Hash import SHA256
 from os import path
+
+
+def read_file(filepath):
+    for encoding in encodings.encodings:
+        try:
+            return codecs.open(filepath, 'r', encoding).read(), encoding
+        except UnicodeDecodeError:
+            pass
 
 
 def extractName(filepath):
@@ -18,19 +28,18 @@ def replace_filename(filepath, filename):
 
 def encryptFile(key, salt, filepath):
     filename = extractName(filepath)
-    random_filename = SHA256.new(get_random_bytes(32)).digest().hex()
+    random_filename = SHA256.new(
+        get_random_bytes(32)).digest().hex() + '.encrypted'
 
     encrypted_file_path = replace_filename(filepath, random_filename)
     encrypted_file = open(encrypted_file_path, "w")
 
-    decrypted_file = open(filepath, 'r')
-    file_content = decrypted_file.read()
-    content_to_encrypt = "/".join([filename, file_content])
+    (file_content, encoding) = read_file(filepath)
+    content_to_encrypt = "/".join([encoding, filename, file_content])
 
     encrypted_content = aes_gcm.encrypt(key, content_to_encrypt, salt)
     encrypted_file.write(encrypted_content)
 
-    decrypted_file.close()
     encrypted_file.close()
 
 
@@ -41,13 +50,17 @@ def decryptFile(key, salt, filepath):
     encrypted_content = encrypted_file.read()
 
     decrypted_content = aes_gcm.decrypt(key, encrypted_content, salt)
-    separator_index = decrypted_content.find('/')
-    filename = decrypted_content[:separator_index]
-    file_content = decrypted_content[separator_index + 1:]
+    separators = list(strings.find_all(decrypted_content, '/'))
+
+    encoding = decrypted_content[:separators[0]]
+    filename = decrypted_content[separators[0] + 1:separators[1]]
+    file_content = decrypted_content[separators[1] + 1:]
+
+    encoded_file_content = file_content.encode(encoding)
 
     decrypted_filepath = replace_filename(filepath, filename)
-    decrypted_file = open(decrypted_filepath, 'w')
-    decrypted_file.write(file_content)
+    decrypted_file = open(decrypted_filepath, 'wb')
+    decrypted_file.write(encoded_file_content)
 
     decrypted_file.close()
     encrypted_file.close()

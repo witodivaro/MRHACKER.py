@@ -27,4 +27,4 @@ def decryptDir(dir):
     remove(keyspath)
 
 
-decryptDir('files')
+decryptDir('file_tree')
